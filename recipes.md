@@ -177,38 +177,34 @@ _Include the status code and the response body._
 ```python
 # EXAMPLE
 
-# GET /home
+# GET /messages
 #  Expected response (200 OK):
 """
-This is my home page!
+Page with list of messages (all)
 """
 
-# GET /wave?name=Leo
+# GET /messages/new
 #  Expected response (200 OK):
 """
-I am waving at Leo
-"""
-
-# GET /wave
-#  Expected response (200 OK):
-"""
-I am waving at no one!
+Page with form to post new message
 """
 
 # POST /submit
 #  Parameters:
-#    name: Leo
-#    message: Hello world
+#    content: hello there
+#    message: "timestamp"
 #  Expected response (200 OK):
 """
-Thanks Leo, you sent this message: "Hello world"
+User: hello there (at "timestamp")
 """
 
 # POST /submit
-#  Parameters: none
-#  Expected response (400 Bad Request):
+#  Parameters:
+#    content: None
+#    message: "timestamp"
+#  Expected response (200 OK):
 """
-Please provide a name and a message
+Error message to enter message content
 """
 ```
 
@@ -220,26 +216,33 @@ Here's an example for you to start with:
 
 ```python
 """
-GET /home
+GET /messages
   Expected response (200 OK):
-  "This is my home page!"
+  Displays list of messages
 """
-def test_get_home(web_client):
-    response = web_client.get('/home')
+def test_get_messages(web_client):
+    response = web_client.get('/messages')
     assert response.status_code == 200
-    assert response.data.decode('utf-8') == 'This is my home page!'
+    assert response.data.decode('utf-8') == "Here are your messages"
+
+@app.route('/messages', methods=['GET'])
+def get_messages():
+    return "Here are your messages"
+"""
 
 """
-POST /submit
-  Parameters:
-    name: Leo
-    message: Hello world
-  Expected response (200 OK):
-  "Thanks Leo, you sent this message: "Hello world""
-"""
-def test_post_submit(web_client):
-    response = web_client.post('/submit', data={'name': 'Leo', 'message': 'Hello world'})
+def test_post_submit_message(web_client):
+    response = web_client.post('/submit', data={
+        'content': 'Hi there!',
+        'message_time': '2024-06-27 10:30:00'
+    })
     assert response.status_code == 200
-    assert response.data.decode('utf-8') == 'Thanks Leo, you sent this message: "Hello world"'
+    assert response.data.decode('utf-8') == 'You received message "Hi there!" at 2024-06-27 10:30:00'
+
+@app.route('/submit', methods=['POST'])
+def post_message():
+    content = request.form['content']
+    timestamp = request.form['message_time']
+    return f"You received message \"{content}\" at {timestamp}"
 ```
 
